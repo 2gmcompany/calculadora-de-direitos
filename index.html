@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Despesas de Viatura - 2GM</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f8f9fa;
+            --accent-color: #28a745;
+            --text-color: #333;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .results-table th, .results-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .results-table tr.total-row {
+            background-color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+        }
+
+        .section-title {
+            background-color: #eee;
+            padding: 5px 10px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.2rem; }
+            .results-table td { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Calculadora de Importação</h1>
+    
+    <div class="input-group">
+        <label for="cifValue">Valor CIF (MT):</label>
+        <input type="number" id="cifValue" placeholder="Ex: 325612.36" step="0.01" oninput="calcular()">
+    </div>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th style="text-align: right;">Valor (MT)</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody">
+            </tbody>
+    </table>
+
+    <div class="footer">
+        © 2026 2GM Company, Lda - Sistema de Apoio ao Negócio
+    </div>
+</div>
+
+<script>
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-MZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcular() {
+        const cif = parseFloat(document.getElementById('cifValue').value) || 0;
+        
+        // Cálculos Aduaneiros
+        const direitos = cif * 0.20;
+        const ice = (cif + direitos) * 0.10;
+        const iva = (cif + direitos + ice) * 0.16;
+        
+        // Taxas Fixas
+        const taxasFixasAduaneiras = {
+            "Taxa de serviços aduaneiros": 1000.00,
+            "Taxa de rádio": 59.00,
+            "MCNET": 1540.00,
+            "Kudumba": 2700.00
+        };
+
+        // Despesas Locais
+        const despesasLocais = {
+            "Agente de Navegação": 9800.00,
+            "INATTER": 11510.00,
+            "Registro Automóvel": 2600.00,
+            "Chapa de Matrícula": 5000.00,
+            "MCTL/Parqueamento": 20200.00
+        };
+
+        let html = '';
+
+        // Renderizar CIF
+        html += `<tr><td>CIF em MT</td><td style="text-align: right;">${formatarMoeda(cif)}</td></tr>`;
+        
+        html += `<tr><td colspan="2" class="section-title">Despesas Aduaneiras</td></tr>`;
+        html += `<tr><td>Direitos Aduaneiros (20%)</td><td style="text-align: right;">${formatarMoeda(direitos)}</td></tr>`;
+        html += `<tr><td>ICE (10%)</td><td style="text-align: right;">${formatarMoeda(ice)}</td></tr>`;
+        html += `<tr><td>IVA (16%)</td><td style="text-align: right;">${formatarMoeda(iva)}</td></tr>`;
+        
+        let somaTaxasFixas = 0;
+        for (let taxa in taxasFixasAduaneiras) {
+            html += `<tr><td>${taxa}</td><td style="text-align: right;">${formatarMoeda(taxasFixasAduaneiras[taxa])}</td></tr>`;
+            somaTaxasFixas += taxasFixasAduaneiras[taxa];
+        }
+
+        html += `<tr><td colspan="2" class="section-title">Despesas Locais & Portuárias</td></tr>`;
+        let somaLocais = 0;
+        for (let despesa in despesasLocais) {
+            html += `<tr><td>${despesa}</td><td style="text-align: right;">${formatarMoeda(despesasLocais[despesa])}</td></tr>`;
+            somaLocais += despesasLocais[despesa];
+        }
+
+        const totalGeral = cif + direitos + ice + iva + somaTaxasFixas + somaLocais;
+
+        html += `<tr class="total-row"><td>TOTAL GERAL</td><td style="text-align: right;">${formatarMoeda(totalGeral)} MT</td></tr>`;
+
+        document.getElementById('resultBody').innerHTML = html;
+    }
+
+    // Inicializa com valor zero
+    calcular();
+</script>
+
+</body>
+</html>
